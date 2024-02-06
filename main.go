@@ -1,18 +1,35 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
   // do not forget to create .env file!
-	godotenv.Load()
+	tokenKey := os.Getenv("OPENAI_API_KEY")
 
-	s3Bucket := os.Getenv("S3_BUCKET")
-	secretKey := os.Getenv("SECRET_KEY")
+  client := openai.NewClient(tokenKey)
+  resp, err := client.CreateChatCompletion(
+    context.Background(),
+    openai.ChatCompletionRequest{
+      Model: openai.GPT3Dot5Turbo,
+      Messages: []openai.ChatCompletionMessage{
+        {
+          Role:    openai.ChatMessageRoleUser,
+          Content: "Hello!",
+        },
+      },
+    },
+  )
 
-	fmt.Printf("S3: %s and secret key: %s", s3Bucket, secretKey)
+  if err != nil {
+    fmt.Printf("ChatCompletion error: %v\n", err)
+    return
+  }
+
+  fmt.Println(resp.Choices[0].Message.Content)
 }
